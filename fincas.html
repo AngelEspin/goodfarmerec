@@ -112,7 +112,7 @@
 
 <script>
   // ==========================================
-  // PEGA AQUÍ EL ENLACE DE TU GOOGLE SHEETS PUBLICADO (.csv)
+  // ENLACE DE TU GOOGLE SHEETS
   // ==========================================
   const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_e-zu9dC1Pzk3XmaKAMP4YhntP2yJ87Tkn6-uQd1flmv7cuY2yjdpK6XTZMKyCd2Qw7Ux41V8dUKx/pub?output=csv";
 
@@ -126,25 +126,69 @@
     Papa.parse(GOOGLE_SHEETS_CSV_URL, {
       download: true,
       header: true,
+      skipEmptyLines: true, // Ignorar filas en blanco al final del Excel
       complete: function(results) {
         
+        const rawData = results.data;
+
+        // Validar si el Excel no cargó nada
+        if (!rawData || rawData.length === 0) {
+            $('#loading').text("Error: El archivo Excel parece estar vacío o el link es incorrecto.").css("color", "red");
+            return;
+        }
+
+        // ==========================================
+        // 1. NORMALIZADOR DE COLUMNAS (LA SOLUCIÓN MAGICA)
+        // Esto quita espacios al inicio o final de tus columnas y las hace mayúsculas
+        // ==========================================
+        const data = rawData.map(row => {
+            let normalizedRow = {};
+            for (let key in row) {
+                if (key) {
+                    normalizedRow[key.trim().toUpperCase()] = row[key];
+                }
+            }
+            return normalizedRow;
+        });
+
+        // ==========================================
+        // 2. DIAGNÓSTICO DE ERRORES
+        // Si no encuentra las columnas, te avisa en pantalla
+        // ==========================================
+        const sampleRow = data[0];
+        if (!("SUPPLIER" in sampleRow) || !("ORCHARD CODE" in sampleRow) || !("FARMS AND SUPPLIER" in sampleRow)) {
+            const columnasEncontradas = Object.keys(sampleRow).join(", ");
+            $('#loading').html(`<b>Error de Columnas.</b><br>En el Excel encontré estas: [${columnasEncontradas}]<br>Y necesito: SUPPLIER, FARMS AND SUPPLIER, ORCHARD CODE.`).css("color", "red");
+            return;
+        }
+
+        // Si todo está bien, ocultamos el estado de "Cargando"
         $('#loading').hide();
         $('#supplier').prop('disabled', false);
         $('#supplier').empty().append(new Option("Seleccione una exportadora...", ""));
 
-        const data = results.data;
-        
-        // 1. Filtrar las filas que tengan un Orchard Code válido
-        const fincasValidas = data.filter(item => item["ORCHARD CODE"] && item["ORCHARD CODE"].trim() !== "");
+        // ==========================================
+        // 3. LÓGICA DEL FORMULARIO
+        // ==========================================
+        // Filtrar las filas que tengan un Orchard Code válido
+        const fincasValidas = data.filter(item => {
+            let orchard = item["ORCHARD CODE"];
+            return orchard && String(orchard).trim() !== "";
+        });
 
-        // 2. Extraer Exportadoras (SUPPLIER) únicas
-        const exportadorasUnicas = [...new Set(fincasValidas.map(item => item["SUPPLIER"]))].filter(Boolean).sort();
+        if(fincasValidas.length === 0) {
+           $('#loading').show().text("Aviso: No se encontraron fincas que tengan un ORCHARD CODE escrito.").css("color", "orange");
+           return;
+        }
+
+        // Extraer Exportadoras (SUPPLIER) únicas
+        const exportadorasUnicas = [...new Set(fincasValidas.map(item => String(item["SUPPLIER"]).trim()))].filter(Boolean).sort();
         
         exportadorasUnicas.forEach(exp => {
           $('#supplier').append(new Option(exp, exp));
         });
 
-        // 3. Cuando seleccionan un Supplier
+        // Cuando seleccionan un Supplier
         $('#supplier').on('change', function() {
           const exportadoraSeleccionada = $(this).val();
           const $farmSelect = $('#farm');
@@ -156,11 +200,11 @@
             $farmSelect.prop('disabled', false);
 
             // Filtrar fincas por el Supplier seleccionado
-            const fincasFiltradas = fincasValidas.filter(item => item["SUPPLIER"] === exportadoraSeleccionada);
+            const fincasFiltradas = fincasValidas.filter(item => String(item["SUPPLIER"]).trim() === exportadoraSeleccionada);
 
             fincasFiltradas.forEach(fincaObj => {
               // Limpiar nombre: "AGRIPEPASA 4 - ANDRADE COMEX" -> "AGRIPEPASA 4"
-              let nombreLimpio = fincaObj["FARMS AND SUPPLIER"] ? fincaObj["FARMS AND SUPPLIER"].split(" - ")[0].trim() : "";
+              let nombreLimpio = fincaObj["FARMS AND SUPPLIER"] ? String(fincaObj["FARMS AND SUPPLIER"]).split(" - ")[0].trim() : "";
               
               if(nombreLimpio) {
                 // Se agrega la finca al selector; el valor interno será el ORCHARD CODE
@@ -172,7 +216,7 @@
           }
         });
 
-        // 4. Cuando seleccionan una Finca
+        // Cuando seleccionan una Finca
         $('#farm').on('change', function() {
           const orchardCode = $(this).val();
           if (orchardCode) {
@@ -184,8 +228,8 @@
         });
 
       },
-      error: function() {
-        $('#loading').text("Error al cargar la base de datos. Verifica el enlace.");
+      error: function(err) {
+        $('#loading').text("Error crítico: Vercel no pudo conectarse a Google Drive. Revisa el link.").css("color", "red");
       }
     });
 
