@@ -116,7 +116,7 @@
     <p>Escribe tu nombre para consultar cuántos días tienes a favor o en contra:</p>
     
     <div class="search-box">
-      <input type="text" id="tech-search" list="tech-list" placeholder="Selecciona o escribe tu nombre..." autocomplete="off">
+      <input type="text" id="tech-search" list="tech-list" placeholder="Cargando datos..." autocomplete="off" disabled>
       <datalist id="tech-list"></datalist>
     </div>
 
@@ -134,26 +134,88 @@
   </div>
 
   <script>
+    // 👇👇👇 PEGA TU ENLACE CSV DE GOOGLE SHEETS AQUÍ 👇👇👇
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRpftBSRIBGCkOIhOYP4m5t4V4vLksv9Q17dcupu8SXOw42loBJ-LzT3dYW97Lfcg/pub?output=csv";
+    // 👆👆👆 ========================================= 👆👆👆
+
     let techData = {};
 
-    // 1. Cargar el JSON desde Vercel
-    fetch('datos_tecnicos.json')
-      .then(response => response.json())
-      .then(data => {
-        techData = data;
+    // Función para procesar el CSV directamente en el navegador
+    function procesarCSV(csvText) {
+      // Separar por líneas y luego por comas
+      const lineas = csvText.split('\n');
+      const filas = lineas.map(linea => linea.split(','));
+
+      // Buscar dónde se divide la tabla (NAME / AVAILABLE DAYS)
+      let splitIdx = filas.length;
+      for (let i = 0; i < filas.length; i++) {
+        const col0 = filas[i][0] ? filas[i][0].replace(/['"]/g, '').trim().toUpperCase() : "";
+        const col1 = filas[i][1] ? filas[i][1].replace(/['"]/g, '').trim().toUpperCase() : "";
+        
+        if (col0 === "NAME" || col0 === "NOMBRE") {
+          splitIdx = i;
+        }
+      }
+
+      // 1. Extraer los días disponibles (mitad inferior)
+      const availableDays = {};
+      for (let i = splitIdx + 1; i < filas.length; i++) {
+        const nombre = filas[i][0] ? filas[i][0].replace(/['"]/g, '').trim().toUpperCase() : "";
+        const diasStr = filas[i][1] ? filas[i][1].replace(/['"]/g, '').trim() : "0";
+        if (nombre) {
+          availableDays[nombre] = parseInt(diasStr) || 0;
+        }
+      }
+
+      // 2. Extraer los historiales (mitad superior)
+      for (let i = 0; i < splitIdx; i++) {
+        const nombre = filas[i][0] ? filas[i][0].replace(/['"]/g, '').trim().toUpperCase() : "";
+        
+        // Ignorar encabezados vacíos o irrelevantes
+        if (!nombre || ["NAME", "NOMBRE", "SEMANA", "FECHAS"].includes(nombre)) continue;
+
+        const libres = [];
+        // Buscar desde la columna 2 (C) en adelante
+        for (let j = 2; j < filas[i].length; j++) {
+          const val = filas[i][j] ? filas[i][j].replace(/['"]/g, '').trim() : "";
+          if (val.toUpperCase().startsWith("LIBRE")) {
+            libres.push(val);
+          }
+        }
+
+        techData[nombre] = {
+          dias_disponibles: availableDays[nombre] || 0,
+          dias_libres: libres
+        };
+      }
+      
+      return techData;
+    }
+
+    // Descargar y cargar los datos
+    fetch(CSV_URL)
+      .then(response => response.text())
+      .then(csvText => {
+        const dataProcesada = procesarCSV(csvText);
+        
         const datalist = document.getElementById('tech-list');
-        // Llenar las opciones del buscador al cargar la página
-        for (const name in techData) {
+        for (const name in dataProcesada) {
           const option = document.createElement('option');
           option.value = name;
           datalist.appendChild(option);
         }
+
+        // Habilitar el buscador
+        const input = document.getElementById('tech-search');
+        input.placeholder = "Selecciona o escribe tu nombre...";
+        input.disabled = false;
       })
       .catch(error => {
-        console.error('Error al cargar datos:', error);
+        console.error('Error al cargar el CSV:', error);
+        document.getElementById('tech-search').placeholder = "Error al cargar los datos.";
       });
 
-    // 2. Mostrar datos al seleccionar un nombre
+    // Mostrar los resultados al seleccionar
     document.getElementById('tech-search').addEventListener('input', function(e) {
       const selectedName = e.target.value.trim().toUpperCase();
       const resultsDiv = document.getElementById('results');
@@ -163,15 +225,13 @@
         
         document.getElementById('tech-name').textContent = selectedName;
         
-        // Poner color al número según si debe o tiene a favor
         const badge = document.getElementById('tech-days');
         badge.textContent = info.dias_disponibles;
-        badge.className = 'days-badge'; // reset
+        badge.className = 'days-badge';
         if (info.dias_disponibles > 0) badge.classList.add('positive');
         else if (info.dias_disponibles < 0) badge.classList.add('negative');
         else badge.classList.add('neutral');
 
-        // Llenar la lista de días
         const historyList = document.getElementById('tech-history');
         historyList.innerHTML = '';
         
@@ -190,7 +250,7 @@
 
         resultsDiv.style.display = 'block';
       } else {
-        resultsDiv.style.display = 'none'; // Ocultar si el nombre está incompleto
+        resultsDiv.style.display = 'none';
       }
     });
   </script>
