@@ -17,14 +17,18 @@
       max-width: 1200px; margin: 0 auto 20px auto; background: white;
       padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .filters { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: flex-end;}
+    /* Nuevo estilo para acomodar los rangos */
+    .filters { display: flex; gap: 15px; flex-wrap: wrap; justify-content: flex-start; align-items: flex-end;}
     .filter-group { display: flex; flex-direction: column; }
-    .filter-group label { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; color: #2c3e50;}
-    .filter-group input, .filter-group select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 160px; font-size: 14px;}
+    .filter-group label { font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #2c3e50;}
+    .filter-group input { padding: 8px; border-radius: 5px; border: 1px solid #ccc; width: 140px; font-size: 14px;}
     
+    .range-box { display: flex; gap: 10px; padding: 10px; border: 1px dashed #ccc; border-radius: 8px; background-color: #fafafa;}
+    .range-box-title { font-size: 0.8rem; color: #777; font-weight: bold; margin-bottom: -5px; margin-top: 5px;}
+
     .btn-search {
       background-color: #005A9C; color: white; border: none; padding: 11px 25px; 
-      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; height: 42px; margin-left: auto;
     }
     .btn-search:hover { background-color: #003f6e; }
     
@@ -67,8 +71,9 @@
     
     #loading { text-align: center; font-weight: bold; color: #ed1922; padding: 20px; font-size: 1.2rem;}
 
-    @media (max-width: 600px) {
-      .priority-group { grid-template-columns: 1fr; }
+    @media (max-width: 900px) {
+      .filters { flex-direction: column; align-items: stretch; }
+      .btn-search { margin-left: 0; width: 100%; margin-top: 15px;}
     }
   </style>
 </head>
@@ -82,26 +87,60 @@
   </div>
 
   <div class="filters">
-    <div class="filter-group">
-      <label>Técnico:</label>
-      <input type="text" id="filter-name" placeholder="Ej: JERRY ARREAGA" list="list_technicians">
+    
+    <div style="display: flex; flex-direction: column;">
+      <div class="range-box-title">TÉCNICOS</div>
+      <div class="range-box" style="flex-wrap: wrap;">
+        <div class="filter-group">
+          <label>Técnico Principal:</label>
+          <input type="text" id="filter-name" placeholder="Ej: JERRY ARREAGA" list="list_technicians">
+        </div>
+        <div class="filter-group">
+          <label>Otro Técnico:</label>
+          <input type="text" id="filter-other-name" placeholder="Ej: JUAN PEREZ">
+        </div>
+      </div>
     </div>
-    <div class="filter-group">
-      <label>Día (DATE):</label>
-      <input type="text" id="filter-date" placeholder="Ej: 2026-03-13">
+
+    <div style="display: flex; flex-direction: column;">
+      <div class="range-box-title">RANGO DE FECHAS</div>
+      <div class="range-box">
+        <div class="filter-group">
+          <label>Desde:</label>
+          <input type="date" id="filter-date-start">
+        </div>
+        <div class="filter-group">
+          <label>Hasta:</label>
+          <input type="date" id="filter-date-end">
+        </div>
+      </div>
     </div>
-    <div class="filter-group">
-      <label>Semana (WEEK):</label>
-      <select id="filter-week">
-        </select>
+
+    <div style="display: flex; flex-direction: column;">
+      <div class="range-box-title">RANGO DE SEMANAS</div>
+      <div class="range-box">
+        <div class="filter-group">
+          <label>Semana Inicial:</label>
+          <input type="number" id="filter-week-start" placeholder="Ej: 9" min="1" max="53">
+        </div>
+        <div class="filter-group">
+          <label>Semana Final:</label>
+          <input type="number" id="filter-week-end" placeholder="Ej: 11" min="1" max="53">
+        </div>
+      </div>
     </div>
-    <div class="filter-group">
-      <label>Año (YEAR):</label>
-      <input type="number" id="filter-year" placeholder="Ej: 2026">
+
+    <div style="display: flex; flex-direction: column;">
+      <div class="range-box-title">AÑO</div>
+      <div class="range-box">
+        <div class="filter-group">
+          <label>Año (YEAR):</label>
+          <input type="number" id="filter-year" placeholder="Ej: 2026" style="width: 80px;">
+        </div>
+      </div>
     </div>
-    <div class="filter-group">
-      <button class="btn-search" onclick="fetchData()">🔍 Buscar Registros</button>
-    </div>
+
+    <button class="btn-search" onclick="fetchData()">🔍 Buscar Registros</button>
   </div>
 
   <div class="data-container" style="overflow-x: auto;">
@@ -153,7 +192,7 @@
 
   <script>
     // =========================================================
-    // 0. AUTOCOMPLETAR FECHA, SEMANA (LISTA) Y AÑO ACTUAL POR DEFECTO
+    // 0. AUTOCOMPLETAR FECHAS, SEMANAS Y AÑO
     // =========================================================
     document.addEventListener("DOMContentLoaded", function () {
       const hoy = new Date();
@@ -173,39 +212,20 @@
 
       const semanaActual = obtenerSemanaISO(hoy);
 
-      const inputDate = document.getElementById("filter-date");
-      const selectWeek = document.getElementById("filter-week");
-      const inputYear = document.getElementById("filter-year");
+      // Seteamos valores por defecto a los rangos
+      document.getElementById("filter-date-end").value = fechaActual;
+      document.getElementById("filter-week-end").value = semanaActual;
+      
+      // La semana inicial será 1 semana atrás por defecto (o puedes poner la misma)
+      let semInicio = semanaActual - 1;
+      if (semInicio <= 0) semInicio = 52 + semInicio;
+      document.getElementById("filter-week-start").value = semInicio;
 
-      if (inputDate && !inputDate.value) inputDate.value = fechaActual;
-      if (inputYear && !inputYear.value) inputYear.value = year;
-
-      // 🚀 NUEVO: Generar las últimas 6 semanas dinámicamente (actual + 5 anteriores)
-      if (selectWeek) {
-        selectWeek.innerHTML = ""; // Limpiar antes de llenar
-
-        // Opción por si alguien quiere buscar sin importar la semana
-        selectWeek.appendChild(new Option("Todas las semanas", "")); 
-
-        for (let i = 0; i <= 5; i++) {
-          let sem = semanaActual - i;
-          
-          // Si estamos a inicio de año y la semana se vuelve 0 o negativa, volvemos a la semana 52
-          if (sem <= 0) {
-            sem = 52 + sem; 
-          }
-          
-          let option = new Option(`Semana ${sem}`, sem);
-          if (i === 0) {
-            option.selected = true; // Por defecto, se selecciona la semana actual
-          }
-          selectWeek.appendChild(option);
-        }
-      }
+      document.getElementById("filter-year").value = year;
     });
 
     // =========================================================
-    // RECUERDA PONER LA URL DE TU "NUEVA IMPLEMENTACIÓN" AQUÍ ABAJO 👇
+    // Pega tu URL de Apps Script aquí
     // =========================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbzXhPX7HyQJvnhvoJvQPglVhorLo9uto6SsVUobwCMXJNMcL7fWdcqWA3y2o8Or-_TW/exec"; 
     
@@ -214,11 +234,18 @@
 
     async function fetchData() {
       const nameVal = document.getElementById('filter-name').value.trim();
-      const dateVal = document.getElementById('filter-date').value.trim();
-      const weekVal = document.getElementById('filter-week').value.trim();
+      const otherNameVal = document.getElementById('filter-other-name').value.trim();
+      
+      // Capturamos los rangos
+      const dateStartVal = document.getElementById('filter-date-start').value.trim();
+      const dateEndVal = document.getElementById('filter-date-end').value.trim();
+      const weekStartVal = document.getElementById('filter-week-start').value.trim();
+      const weekEndVal = document.getElementById('filter-week-end').value.trim();
+      
       const yearVal = document.getElementById('filter-year').value.trim();
 
-      if (!dateVal && !weekVal && !yearVal && !nameVal) {
+      // Validación básica
+      if (!dateStartVal && !dateEndVal && !weekStartVal && !weekEndVal && !yearVal && !nameVal && !otherNameVal) {
         alert("Por favor, ingresa al menos un filtro de búsqueda.");
         return;
       }
@@ -230,7 +257,15 @@
       loading.style.display = "block";
 
       try {
-        let queryParams = `?action=getData&name=${encodeURIComponent(nameVal)}&date=${encodeURIComponent(dateVal)}&week=${encodeURIComponent(weekVal)}&year=${encodeURIComponent(yearVal)}`;
+        // Armamos la query con todos los parámetros
+        let queryParams = `?action=getData` +
+                          `&name=${encodeURIComponent(nameVal)}` +
+                          `&other_name=${encodeURIComponent(otherNameVal)}` +
+                          `&dateStart=${encodeURIComponent(dateStartVal)}` +
+                          `&dateEnd=${encodeURIComponent(dateEndVal)}` +
+                          `&weekStart=${encodeURIComponent(weekStartVal)}` +
+                          `&weekEnd=${encodeURIComponent(weekEndVal)}` +
+                          `&year=${encodeURIComponent(yearVal)}`;
         
         const response = await fetch(API_URL + queryParams);
         currentData = await response.json();
