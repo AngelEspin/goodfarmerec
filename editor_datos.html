@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VISOR Y EDITOR DE DATOS - GOODFARMER</title>
   <style>
     body {
@@ -20,7 +20,7 @@
     .filters { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: flex-end;}
     .filter-group { display: flex; flex-direction: column; }
     .filter-group label { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; color: #2c3e50;}
-    .filter-group input { padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 180px;}
+    .filter-group input { padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 160px;}
     
     .btn-search {
       background-color: #005A9C; color: white; border: none; padding: 11px 25px; 
@@ -58,7 +58,6 @@
     .form-group label { font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; word-wrap: break-word;}
     .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;}
     
-    /* Resaltado de campos prioritarios */
     .priority-group { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #ed1922; margin-bottom: 10px;}
     .priority-group label { color: #ed1922; font-size: 1rem;}
     .priority-group input { border: 2px solid #ed1922; font-weight: bold;}
@@ -83,6 +82,10 @@
   </div>
 
   <div class="filters">
+    <div class="filter-group">
+      <label>Nombre (Finca/Prov):</label>
+      <input type="text" id="filter-name" placeholder="Ej: CARMITA">
+    </div>
     <div class="filter-group">
       <label>Día (DATE):</label>
       <input type="text" id="filter-date" placeholder="Ej: 5/16/2025">
@@ -128,27 +131,27 @@
       </div>
       <form id="edit-form">
         <div class="priority-group" id="priority-fields"></div>
-        
         <div class="form-grid" id="dynamic-fields"></div>
-        
         <button type="button" class="btn-save" onclick="saveData()">💾 Guardar y Actualizar Excel</button>
       </form>
     </div>
   </div>
 
   <script>
-    // 🔴 REEMPLAZA ESTO CON LA URL DE TU SCRIPT DE GOOGLE
-    const API_URL = "https://script.google.com/macros/s/AKfycbzXhPX7HyQJvnhvoJvQPglVhorLo9uto6SsVUobwCMXJNMcL7fWdcqWA3y2o8Or-_TW/exec";
+    // 🔴 ASEGÚRATE DE PEGAR AQUÍ TU URL DEFINITIVA DE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbywQ0f14x1Lh9F32iN7H-QJqR3R5kH2L6gWv7qV5O2/exec"; 
     
     let currentData = [];
     let currentRowId = null;
 
     async function fetchData() {
+      // Leemos los 4 campos
+      const nameVal = document.getElementById('filter-name').value.trim();
       const dateVal = document.getElementById('filter-date').value.trim();
       const weekVal = document.getElementById('filter-week').value.trim();
       const yearVal = document.getElementById('filter-year').value.trim();
 
-      if (!dateVal && !weekVal && !yearVal) {
+      if (!dateVal && !weekVal && !yearVal && !nameVal) {
         alert("Por favor, ingresa al menos un filtro de búsqueda.");
         return;
       }
@@ -160,7 +163,8 @@
       loading.style.display = "block";
 
       try {
-        let queryParams = `?action=getData&date=${encodeURIComponent(dateVal)}&week=${encodeURIComponent(weekVal)}&year=${encodeURIComponent(yearVal)}`;
+        // Añadimos el "name" a los parámetros de la URL
+        let queryParams = `?action=getData&name=${encodeURIComponent(nameVal)}&date=${encodeURIComponent(dateVal)}&week=${encodeURIComponent(weekVal)}&year=${encodeURIComponent(yearVal)}`;
         
         const response = await fetch(API_URL + queryParams);
         currentData = await response.json();
@@ -169,7 +173,7 @@
         renderTable();
       } catch (error) {
         loading.style.display = "none";
-        tbody.innerHTML = "<tr><td colspan='7' style='color:red;'>Error de conexión. Revisa la consola o la URL del script.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='7' style='color:red;'>Error de conexión. Revisa la consola.</td></tr>";
         console.error(error);
       }
     }
@@ -200,7 +204,7 @@
 
     function openModal(index) {
       const row = currentData[index];
-      currentRowId = row.id_fila; // Guardamos la fila exacta a editar
+      currentRowId = row.id_fila;
 
       const priorityContainer = document.getElementById('priority-fields');
       const standardContainer = document.getElementById('dynamic-fields');
@@ -210,7 +214,6 @@
 
       const priorityKeys = ["FARM CODE", "ORCHARD CODE", "FIX FARM"];
       
-      // Construir prioridad
       priorityKeys.forEach(key => {
         priorityContainer.innerHTML += `
           <div class="form-group">
@@ -220,7 +223,6 @@
         `;
       });
 
-      // Construir el resto
       Object.keys(row).forEach(key => {
         if (!priorityKeys.includes(key) && key !== "id_fila") {
           standardContainer.innerHTML += `
@@ -248,18 +250,16 @@
       try {
         let datosActualizados = { id_fila: currentRowId }; 
         
-        // Recorrer todos los inputs del form
         const inputs = document.querySelectorAll('#edit-form input');
         inputs.forEach(input => {
           let columnName = input.id.replace('edit_', ''); 
           datosActualizados[columnName] = input.value;
         });
 
-        // Enviar a Google
         const response = await fetch(API_URL, {
           method: "POST",
           body: JSON.stringify(datosActualizados),
-          headers: { "Content-Type": "text/plain;charset=utf-8" } // Bypass de CORS nativo de GAS
+          headers: { "Content-Type": "text/plain;charset=utf-8" }
         });
 
         const result = await response.json();
