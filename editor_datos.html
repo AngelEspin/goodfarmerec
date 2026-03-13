@@ -1,1 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VISOR Y EDITOR DE DATOS - GOODFARMER</title>
+  <style>
+    body {
+      margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9; color: #333; padding: 20px;
+    }
+    .header-container { text-align: center; margin-bottom: 30px; }
+    .header-container img { max-width: 250px; height: auto; }
+    .header-container h1 { color: #ed1922; margin-top: 10px;}
+    
+    .filters, .data-container {
+      max-width: 1200px; margin: 0 auto 20px auto; background: white;
+      padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .filters { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: flex-end;}
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-group label { font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; color: #2c3e50;}
+    .filter-group input { padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 180px;}
+    
+    .btn-search {
+      background-color: #005A9C; color: white; border: none; padding: 11px 25px; 
+      border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;
+    }
+    .btn-search:hover { background-color: #003f6e; }
+    
+    .btn-back {
+      display: inline-block; text-decoration: none; color: white; background-color: #ed1922;
+      padding: 10px 20px; border-radius: 5px; font-weight: bold; margin-bottom: 20px;
+    }
 
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #e9ecef; color: #333; }
+    tr:hover { background-color: #f5f5f5; }
+    
+    .btn-edit { background-color: #ff8c00; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+    .btn-edit:hover { background-color: #e67e22; }
+
+    /* Modal */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-content {
+      background: white; padding: 30px; border-radius: 10px; width: 95%; max-width: 800px;
+      max-height: 85vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ed1922; padding-bottom: 10px; margin-bottom: 20px;}
+    .close-btn { background: none; border: none; font-size: 2rem; cursor: pointer; color: #ed1922; line-height: 1;}
+    
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 0.8rem; font-weight: bold; color: #555; margin-bottom: 4px; word-wrap: break-word;}
+    .form-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;}
+    
+    /* Resaltado de campos prioritarios */
+    .priority-group { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #ed1922; margin-bottom: 10px;}
+    .priority-group label { color: #ed1922; font-size: 1rem;}
+    .priority-group input { border: 2px solid #ed1922; font-weight: bold;}
+
+    .btn-save { background-color: #4CAF50; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 1.2rem; font-weight: bold; transition: 0.3s;}
+    .btn-save:hover { background-color: #45a049; }
+    
+    #loading { text-align: center; font-weight: bold; color: #ed1922; padding: 20px; font-size: 1.2rem;}
+
+    @media (max-width: 600px) {
+      .priority-group { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <a href="index.html" class="btn-back">⬅ Volver al Inicio</a>
+    <br>
+    <img src="https://www.goodfarmer.com/en/web/static/web/img/logo.png?v=v3" alt="GoodFarmer Logo" />
+    <h1>EDICIÓN DE REPORTE BANANERO</h1>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Día (DATE):</label>
+      <input type="text" id="filter-date" placeholder="Ej: 5/16/2025">
+    </div>
+    <div class="filter-group">
+      <label>Semana (WEEK):</label>
+      <input type="number" id="filter-week" placeholder="Ej: 20">
+    </div>
+    <div class="filter-group">
+      <label>Año (YEAR):</label>
+      <input type="number" id="filter-year" placeholder="Ej: 2025">
+    </div>
+    <div class="filter-group">
+      <button class="btn-search" onclick="fetchData()">🔍 Buscar Registros</button>
+    </div>
+  </div>
+
+  <div class="data-container" style="overflow-x: auto;">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th>Acción</th>
+          <th>DATE</th>
+          <th>FARM CODE</th>
+          <th>ORCHARD CODE</th>
+          <th>WEEK</th>
+          <th>SUPPLIER</th>
+          <th>FARM</th>
+        </tr>
+      </thead>
+      <tbody id="data-body">
+        <tr><td colspan='7' style="text-align:center;">Usa los filtros de arriba para buscar información.</td></tr>
+      </tbody>
+    </table>
+    <div id="loading" style="display:none;">🔄 Conectando con la base de datos...</div>
+  </div>
+
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="margin: 0; color: #2c3e50;">✏️ Editor de Registro</h2>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <form id="edit-form">
+        <div class="priority-group" id="priority-fields"></div>
+        
+        <div class="form-grid" id="dynamic-fields"></div>
+        
+        <button type="button" class="btn-save" onclick="saveData()">💾 Guardar y Actualizar Excel</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 🔴 REEMPLAZA ESTO CON LA URL DE TU SCRIPT DE GOOGLE
+    const API_URL = "https://script.google.com/macros/s/AKfycbzXhPX7HyQJvnhvoJvQPglVhorLo9uto6SsVUobwCMXJNMcL7fWdcqWA3y2o8Or-_TW/exec";
+    
+    let currentData = [];
+    let currentRowId = null;
+
+    async function fetchData() {
+      const dateVal = document.getElementById('filter-date').value.trim();
+      const weekVal = document.getElementById('filter-week').value.trim();
+      const yearVal = document.getElementById('filter-year').value.trim();
+
+      if (!dateVal && !weekVal && !yearVal) {
+        alert("Por favor, ingresa al menos un filtro de búsqueda.");
+        return;
+      }
+
+      const tbody = document.getElementById('data-body');
+      const loading = document.getElementById('loading');
+      
+      tbody.innerHTML = "";
+      loading.style.display = "block";
+
+      try {
+        let queryParams = `?action=getData&date=${encodeURIComponent(dateVal)}&week=${encodeURIComponent(weekVal)}&year=${encodeURIComponent(yearVal)}`;
+        
+        const response = await fetch(API_URL + queryParams);
+        currentData = await response.json();
+        
+        loading.style.display = "none";
+        renderTable();
+      } catch (error) {
+        loading.style.display = "none";
+        tbody.innerHTML = "<tr><td colspan='7' style='color:red;'>Error de conexión. Revisa la consola o la URL del script.</td></tr>";
+        console.error(error);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('data-body');
+      tbody.innerHTML = '';
+
+      if(currentData.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No se encontraron registros.</td></tr>";
+        return;
+      }
+
+      currentData.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><button class="btn-edit" onclick="openModal(${index})">📝 Editar</button></td>
+          <td>${row['DATE'] || ''}</td>
+          <td><b>${row['FARM CODE'] || ''}</b></td>
+          <td><b>${row['ORCHARD CODE'] || ''}</b></td>
+          <td>${row['WEEK'] || ''}</td>
+          <td>${row['SUPPLIER'] || ''}</td>
+          <td>${row['FARM'] || ''}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openModal(index) {
+      const row = currentData[index];
+      currentRowId = row.id_fila; // Guardamos la fila exacta a editar
+
+      const priorityContainer = document.getElementById('priority-fields');
+      const standardContainer = document.getElementById('dynamic-fields');
+      
+      priorityContainer.innerHTML = '';
+      standardContainer.innerHTML = '';
+
+      const priorityKeys = ["FARM CODE", "ORCHARD CODE", "FIX FARM"];
+      
+      // Construir prioridad
+      priorityKeys.forEach(key => {
+        priorityContainer.innerHTML += `
+          <div class="form-group">
+            <label>${key}</label>
+            <input type="text" id="edit_${key}" value="${row[key] !== undefined ? row[key] : ''}">
+          </div>
+        `;
+      });
+
+      // Construir el resto
+      Object.keys(row).forEach(key => {
+        if (!priorityKeys.includes(key) && key !== "id_fila") {
+          standardContainer.innerHTML += `
+            <div class="form-group">
+              <label>${key}</label>
+              <input type="text" id="edit_${key}" value="${row[key] !== undefined ? row[key] : ''}">
+            </div>
+          `;
+        }
+      });
+
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    async function saveData() {
+      const btn = document.querySelector('.btn-save');
+      btn.innerText = "⏳ Guardando en Excel...";
+      btn.style.backgroundColor = "#ccc";
+      btn.disabled = true;
+
+      try {
+        let datosActualizados = { id_fila: currentRowId }; 
+        
+        // Recorrer todos los inputs del form
+        const inputs = document.querySelectorAll('#edit-form input');
+        inputs.forEach(input => {
+          let columnName = input.id.replace('edit_', ''); 
+          datosActualizados[columnName] = input.value;
+        });
+
+        // Enviar a Google
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify(datosActualizados),
+          headers: { "Content-Type": "text/plain;charset=utf-8" } // Bypass de CORS nativo de GAS
+        });
+
+        const result = await response.json();
+        
+        if(result.status === "Éxito") {
+           alert("¡Actualizado exitosamente en el Excel!");
+           closeModal();
+           fetchData(); 
+        } else {
+           alert("Error al guardar: " + result.error);
+        }
+
+      } catch (error) {
+        alert("Fallo la conexión al intentar guardar.");
+        console.error(error);
+      } finally {
+        btn.innerText = "💾 Guardar y Actualizar Excel";
+        btn.style.backgroundColor = "#4CAF50";
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
