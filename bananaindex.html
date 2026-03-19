@@ -85,10 +85,34 @@
       background-color: #00803a;
     }
 
+    /* --- ESTILO PARA EL BOTÓN FIX FARMS --- */
+    .btn-fix-farms {
+      display: inline-block;
+      text-decoration: none;
+      background-color: #ff9800; /* Color Naranja */
+      color: white;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-fix-farms:hover {
+      background-color: #e68a00;
+      transform: translateY(-2px);
+    }
+
     .logo {
       margin: -40px auto;
       width: 250px;
       height: auto;
+    }
+
+    .farms-section {
+      text-align: center;
+      margin-bottom: 40px;
     }
 
     @media (max-width: 800px) {
@@ -112,18 +136,23 @@
 
 <body>
 
-  
-  
     <button class="return-button" onclick="history.back()">
     ← RETURN
     </button>
   <div class="header">
     <img src="logo.png" alt="GoodFarmer Logo" class="logo" />
   </div>  
-  
 
   <h1 style="text-align: center; color: #ed1922;">GOODFARMER FORMS</h1>
-  <h1 style="text-align: center; color: black;">BANANA</h1>
+  <h1 style="text-align: center; color: black; margin-bottom: 30px;">BANANA</h1>
+
+  <div class="farms-section">
+    <a href="https://docs.google.com/spreadsheets/d/1T5gVSrmgojGD-dHnt44uvVdc-utdoXNw/edit?usp=sharing&ouid=111497614253939390290&rtpof=true&sd=true" target="_blank" class="btn-fix-farms">
+      🛠️ FIX FARMS
+    </a>
+    <h3 style="color: #333; margin-top: 20px;">FARMS INFORMATION</h3>
+    <hr style="border: 1px solid #eee; max-width: 800px; margin: 0 auto;">
+  </div>
 
   <div class="container">
     <div class="section">
@@ -144,7 +173,6 @@
       <a class="form-link" href="https://forms.gle/3BbbAoKq3RJyQRep9" target="_blank">RED LINE FORM</a>
       <a class="form-link" href="https://forms.gle/jPGPHrunN1pfmNuB7" target="_blank">WATER RECICLER FORM</a>
     </div>
-
 
     <div class="section">
       <h2>VIEW FORMS</h2>
