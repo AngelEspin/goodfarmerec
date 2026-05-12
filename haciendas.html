@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mapa de Haciendas GoodFarmer</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; overflow:hidden; height:100dvh; background:#f9f9f9; }
+  #map { height:100dvh; width:100vw; }
+  .info-box { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.95); padding:6px 14px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.2); z-index:1000; font-size:clamp(11px,3vw,14px); text-align:center; white-space:nowrap; max-width:95vw; }
+  .legend { background:white; padding:10px 14px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.2); font-size:clamp(11px,2.5vw,13px); line-height:1.7; }
+  .legend h4 { margin:0 0 4px 0; font-size:clamp(12px,3vw,14px); }
+  .leaflet-popup-content { font-size:clamp(13px,3.5vw,15px); margin:8px 12px; }
+  .leaflet-popup-content-wrapper { border-radius:10px; }
+  .leaflet-control-zoom a { width:36px; height:36px; line-height:36px; font-size:20px; }
+  #toggle-list { position:absolute; bottom:80px; right:10px; z-index:1000; background:white; border:none; border-radius:8px; padding:8px 12px; font-size:22px; box-shadow:0 2px 8px rgba(0,0,0,0.3); cursor:pointer; line-height:1; }
+  #panel { position:absolute; bottom:0; left:0; right:0; z-index:999; background:rgba(255,255,255,0.97); max-height:40dvh; overflow-y:auto; border-radius:12px 12px 0 0; box-shadow:0 -4px 20px rgba(0,0,0,0.2); transition:transform 0.3s; transform:translateY(100%); }
+  #panel.open { transform:translateY(0); }
+  #panel table { width:100%; border-collapse:collapse; font-size:clamp(12px,3vw,14px); }
+  #panel td, #panel th { padding:8px 10px; border-bottom:1px solid #eee; }
+  #panel th { text-align:left; color:#666; font-weight:600; position:sticky; top:0; background:rgba(255,255,255,0.98); }
+  #panel td:first-child { width:24px; }
+  #panel td:last-child { text-align:right; color:#666; }
+  #panel tr { cursor:pointer; }
+  #panel tr:active { background:#f0f0f0; }
+  .handle { text-align:center; padding:6px; color:#ccc; font-size:20px; cursor:pointer; user-select:none; }
+  @media (max-width:480px) {
+    .info-box { top:6px; padding:4px 10px; }
+    .legend { padding:8px 10px; }
+    #panel td, #panel th { padding:6px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="info-box"><b>1 haciendas</b></div>
+<div id="map"></div>
+<button id="toggle-list">&udarr;</button>
+<div id="panel">
+  <div class="handle" id="drag-handle">&mdash;</div>
+  <table>
+    <tr><th></th><th>Hacienda</th><th>Productor</th><th>Ha</th></tr>
+  </table>
+</div>
+<script>
+var farms = [{"lat": -0.891111, "lng": -79.301361, "farm": "Buena Esperanza", "supplier": "GOODFARMER GFFT", "province": "LOS RIOS", "producer": "Xavier Carrera", "hectares": "60", "farmCode": "08396", "orchardCode": "08396", "ruc": "993372966001"}];
+
+var map = L.map('map', {zoomControl:true,zoomSnap:0.5,zoomDelta:1}).setView([-1.8,-79.5],7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(map);
+
+var markers = [];
+var rowsHtml = '';
+
+farms.forEach(function(f, i) {
+    var icon = L.divIcon({
+        html: '<div style="display:flex;align-items:center;gap:5px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">'
+            + '<div style="background:#ed1922;width:26px;height:26px;border-radius:50%;border:3px solid white;flex-shrink:0;"></div>'
+            + '<span style="background:rgba(255,255,255,0.95);padding:4px 10px;border-radius:6px;font-size:clamp(13px,3.5vw,16px);font-weight:bold;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.15);">'+f.farm+'</span>'
+            + '</div>',
+        className:'', iconSize:null, iconAnchor:[13,13]
+    });
+    var popupHtml = '<b>' + f.farm + '</b>'
+        + '<br><b>Productor:</b> ' + (f.producer || 'N/A')
+        + '<br><b>Proveedor:</b> ' + (f.supplier || 'N/A')
+        + '<br><b>Provincia:</b> ' + (f.province || 'N/A')
+        + '<br><b>Hectareas:</b> ' + (f.hectares || 'N/A')
+        + '<br><b>Farm Code:</b> ' + (f.farmCode || 'N/A');
+    var m = L.marker([f.lat,f.lng],{icon:icon}).addTo(map).bindPopup(popupHtml);
+    markers[i] = m;
+    rowsHtml += '<tr onclick="map.flyTo(['+f.lat+','+f.lng+'],14,{duration:1});m.openPopup();"><td><i style="background:#ed1922;display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle;"></i></td><td>'+f.farm+'</td><td>'+(f.producer || 'N/A')+'</td><td>'+(f.hectares || 'N/A')+'</td></tr>';
+});
+document.querySelector('#panel table').innerHTML = '<tr><th></th><th>Hacienda</th><th>Productor</th><th>Ha</th></tr>'+rowsHtml;
+
+var panel = document.getElementById('panel');
+var btn = document.getElementById('toggle-list');
+var handle = document.getElementById('drag-handle');
+function toggle() { panel.classList.toggle('open'); }
+btn.onclick = toggle;
+handle.onclick = toggle;
+
+L.control({position:'bottomright'}).onAdd = function() {
+    var d = L.DomUtil.create('div','legend');
+    d.innerHTML = '<h4>Haciendas GoodFarmer</h4><i style="background:#ed1922;display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:4px;vertical-align:middle;"></i> Finca local';
+    return d;
+}.addTo(map);
+</script>
+</body>
+</html>
