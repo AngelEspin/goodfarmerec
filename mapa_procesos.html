@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mapa de Procesos - 12/5/2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; overflow:hidden; height:100dvh; background:#f9f9f9; }
+  #map { height:100dvh; width:100vw; }
+  .return-btn { position:absolute; top:10px; left:10px; z-index:1001; background:#ed1922; color:white; border:none; padding:6px 14px; border-radius:8px; font-size:clamp(12px,3vw,14px); font-weight:bold; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.3); text-decoration:none; font-family:inherit; }
+  .return-btn:hover { background:#c2161b; }
+  .info-box { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(255,255,255,0.95); padding:6px 12px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.2); z-index:1000; font-size:clamp(11px,3vw,14px); text-align:center; white-space:nowrap; max-width:95vw; }
+  .legend { background:white; padding:10px 14px; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.2); font-size:clamp(11px,2.5vw,13px); line-height:1.7; }
+  .legend h4 { margin:0 0 4px 0; font-size:clamp(12px,3vw,14px); }
+  .legend i { display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  .leaflet-popup-content { font-size:clamp(13px,3.5vw,15px); margin:8px 12px; }
+  .leaflet-popup-content-wrapper { border-radius:10px; }
+  .leaflet-control-zoom a { width:36px; height:36px; line-height:36px; font-size:20px; }
+  #toggle-list { position:absolute; bottom:80px; right:10px; z-index:1000; background:white; border:none; border-radius:8px; padding:8px 12px; font-size:22px; box-shadow:0 2px 8px rgba(0,0,0,0.3); cursor:pointer; line-height:1; }
+  #panel { position:absolute; bottom:0; left:0; right:0; z-index:999; background:rgba(255,255,255,0.97); max-height:40dvh; overflow-y:auto; border-radius:12px 12px 0 0; box-shadow:0 -4px 20px rgba(0,0,0,0.2); transition:transform 0.3s; transform:translateY(100%); }
+  #panel.open { transform:translateY(0); }
+  #panel table { width:100%; border-collapse:collapse; font-size:clamp(12px,3vw,14px); }
+  #panel td, #panel th { padding:8px 10px; border-bottom:1px solid #eee; }
+  #panel th { text-align:left; color:#666; font-weight:600; position:sticky; top:0; background:rgba(255,255,255,0.98); }
+  #panel td:first-child { width:24px; }
+  #panel td:last-child { text-align:right; color:#666; }
+  #panel tr { cursor:pointer; }
+  #panel tr:active { background:#f0f0f0; }
+  .handle { text-align:center; padding:6px; color:#ccc; font-size:20px; cursor:pointer; user-select:none; }
+  @media (max-width:480px) {
+    .return-btn { top:6px; left:6px; padding:4px 10px; font-size:11px; }
+    .info-box { top:6px; padding:4px 10px; }
+    .legend { padding:8px 10px; }
+    #panel td, #panel th { padding:6px 8px; }
+  }
+</style>
+</head>
+<body>
+<button class="return-btn" onclick="window.location.href='index.html'">← RETURN</button>
+<div class="info-box"><b>12/5/2026</b> | <b>El Triunfo</b> | <b>27 procesos</b></div>
+<div id="map"></div>
+<button id="toggle-list">📋</button>
+<div id="panel">
+  <div class="handle" id="drag-handle">―</div>
+  <table>
+    <tr><th></th><th>Nombre</th><th>Distancia</th></tr>
+    <tr onclick="flyTo(-2.380254030227661,-79.33894348144531)"><td><i style="background:orange"></i></td><td>Byron Parrales</td><td>8.9 km</td></tr><tr onclick="flyTo(-2.4219726,-79.4712341)"><td><i style="background:orange"></i></td><td>Hugo Calderon</td><td>12.6 km</td></tr><tr onclick="flyTo(-2.230534,-79.5394528)"><td><i style="background:orange"></i></td><td>Biallo Miranda Calidad GF</td><td>18.9 km</td></tr><tr onclick="flyTo(-2.1523427,-79.4225052)"><td><i style="background:red"></i></td><td>Paul Rivera Calidad GF</td><td>20.0 km</td></tr><tr onclick="flyTo(-2.5101988315582275,-79.56976318359375)"><td><i style="background:red"></i></td><td>Ing. Agr. Jesus Bosquez Calidad GF</td><td>27.2 km</td></tr><tr onclick="flyTo(-2.5892043113708496,-79.55169677734375)"><td><i style="background:red"></i></td><td>Roger Lopez</td><td>33.1 km</td></tr><tr onclick="flyTo(-2.0042265,-79.4033613)"><td><i style="background:red"></i></td><td>i Luis Garcia</td><td>36.4 km</td></tr><tr onclick="flyTo(-2.6188978,-79.5645784)"><td><i style="background:red"></i></td><td>MARLON ALAVA</td><td>36.7 km</td></tr><tr onclick="flyTo(-1.9864503,-79.379441)"><td><i style="background:red"></i></td><td>Andres Rendon</td><td>38.4 km</td></tr><tr onclick="flyTo(-1.9440117,-79.5034)"><td><i style="background:red"></i></td><td>Jean Carlos Garrido Calidad GF</td><td>44.5 km</td></tr><tr onclick="flyTo(-2.8077094554901123,-79.75043487548828)"><td><i style="background:red"></i></td><td>Danny.D</td><td>65.5 km</td></tr><tr onclick="flyTo(-1.7349343,-79.5643579)"><td><i style="background:red"></i></td><td>. Christopher Mauricio Cortez</td><td>68.7 km</td></tr><tr onclick="flyTo(-1.7344888,-79.5638278)"><td><i style="background:red"></i></td><td>Estiven Santillan</td><td>68.7 km</td></tr><tr onclick="flyTo(-1.7583623,-79.6605618)"><td><i style="background:red"></i></td><td>Milton Fernandez</td><td>69.9 km</td></tr><tr onclick="flyTo(-2.9114464,-79.7771042)"><td><i style="background:red"></i></td><td>Luis Arguello</td><td>76.7 km</td></tr><tr onclick="flyTo(-1.5449489,-79.4647117)"><td><i style="background:red"></i></td><td>Marcos Sanchez Calidad GF</td><td>87.7 km</td></tr><tr onclick="flyTo(-1.5393211,-79.4193193)"><td><i style="background:red"></i></td><td>Darwin Gavilanes</td><td>88.1 km</td></tr><tr onclick="flyTo(-3.1683783531188965,-79.7997055053711)"><td><i style="background:red"></i></td><td>Paul Ponguillo Calidad GF</td><td>103.0 km</td></tr><tr onclick="flyTo(-3.1843893,-79.8080851)"><td><i style="background:red"></i></td><td>Richard Sebastian Garcia</td><td>105.0 km</td></tr><tr onclick="flyTo(-1.311165,-79.4154317)"><td><i style="background:red"></i></td><td>Walter Contreras</td><td>113.5 km</td></tr><tr onclick="flyTo(-3.2897333,-79.88441)"><td><i style="background:red"></i></td><td>Roderick Cadena</td><td>119.2 km</td></tr><tr onclick="flyTo(-3.3705656,-79.8737801)"><td><i style="background:red"></i></td><td>Alex Wu</td><td>126.8 km</td></tr><tr onclick="flyTo(-0.999005,-79.3038967)"><td><i style="background:red"></i></td><td>Edgar Villon Calidad GF</td><td>148.6 km</td></tr><tr onclick="flyTo(-0.977462,-79.5259713)"><td><i style="background:red"></i></td><td>. - Angel Munoz</td><td>151.2 km</td></tr><tr onclick="flyTo(-0.8906533,-79.2155)"><td><i style="background:red"></i></td><td>Jackson Molina</td><td>161.5 km</td></tr><tr onclick="flyTo(-0.8071442,-79.4772188)"><td><i style="background:red"></i></td><td>Luis Mora</td><td>169.7 km</td></tr><tr onclick="flyTo(-3.6682637,-80.1447363)"><td><i style="background:red"></i></td><td>Fernando Sanchez</td><td>170.0 km</td></tr>
+  </table>
+</div>
+<script>
+  var map = L.map('map', { zoomControl: true, zoomSnap:0.5, zoomDelta:1 }).setView([-1.8, -79.5], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap', maxZoom: 18
+  }).addTo(map);
+  var refIcon = L.divIcon({
+    html: '<div style="background:purple;width:24px;height:24px;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:13px;">📍</div>',
+    className: '', iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12]
+  });
+  L.marker([-2.331389, -79.402778], { icon: refIcon }).addTo(map).bindPopup('<b>El Triunfo</b>');
+  L.circle([-2.331389, -79.402778], { radius: 5000, color:'green', fillColor:'green', fillOpacity:0.06, weight:2, opacity:0.4 }).addTo(map);
+  L.circle([-2.331389, -79.402778], { radius: 20000, color:'orange', fillColor:'orange', fillOpacity:0.04, weight:2, opacity:0.3 }).addTo(map);
+  
+        L.marker([-2.380254030227661, -79.33894348144531], {
+            icon: L.divIcon({
+                html: '<div style="background:orange;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Byron Parrales</b><br>8.9 km<br><i>Cercano (5-20 km)</i>');
+        
+        L.marker([-2.4219726, -79.4712341], {
+            icon: L.divIcon({
+                html: '<div style="background:orange;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Hugo Calderón</b><br>12.6 km<br><i>Cercano (5-20 km)</i>');
+        
+        L.marker([-2.230534, -79.5394528], {
+            icon: L.divIcon({
+                html: '<div style="background:orange;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Biallo Miranda Calidad GF</b><br>18.9 km<br><i>Cercano (5-20 km)</i>');
+        
+        L.marker([-2.1523427, -79.4225052], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Paul Rivera Calidad GF</b><br>20.0 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.5101988315582275, -79.56976318359375], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Ing. Agr. Jesus Bósquez Calidad GF</b><br>27.2 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.5892043113708496, -79.55169677734375], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Roger Lopez</b><br>33.1 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.0042265, -79.4033613], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>-i Luis Garcia</b><br>36.4 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.6188978, -79.5645784], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>MARLON ALAVA</b><br>36.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.9864503, -79.379441], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>-¡ Andrés Rendon</b><br>38.4 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.9440117, -79.5034], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Jean Carlos Garrido Calidad GF</b><br>44.5 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.8077094554901123, -79.75043487548828], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Danny.D</b><br>65.5 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.7349343, -79.5643579], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>. Christopher Mauricio Cortez</b><br>68.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.7344888, -79.5638278], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Estiven Santillan</b><br>68.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.7583623, -79.6605618], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Milton Fernández</b><br>69.9 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-2.9114464, -79.7771042], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Luis Arguello</b><br>76.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.5449489, -79.4647117], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Marcos Sanchez Calidad GF</b><br>87.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.5393211, -79.4193193], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Darwin Gavilanes</b><br>88.1 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-3.1683783531188965, -79.7997055053711], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Paul Ponguillo Calidad GF</b><br>103.0 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-3.1843893, -79.8080851], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Richard Sebastian Garcia</b><br>105.0 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-1.311165, -79.4154317], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Walter Contreras</b><br>113.5 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-3.2897333, -79.88441], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Roderick Cadena 😎</b><br>119.2 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-3.3705656, -79.8737801], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Alex Wu</b><br>126.8 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-0.999005, -79.3038967], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Edgar Villon Calidad GF</b><br>148.6 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-0.977462, -79.5259713], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>. - Angel Muñoz</b><br>151.2 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-0.8906533, -79.2155], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Jackson Molina</b><br>161.5 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-0.8071442, -79.4772188], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Luis Mora</b><br>169.7 km<br><i>Lejano (> 20 km)</i>');
+        
+        L.marker([-3.6682637, -80.1447363], {
+            icon: L.divIcon({
+                html: '<div style="background:red;width:22px;height:22px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+                className: '',
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            })
+        }).addTo(map)
+            .bindPopup('<b>Fernando Sanchez</b><br>170.0 km<br><i>Lejano (> 20 km)</i>');
+        
+  function flyTo(lat, lng) { map.flyTo([lat, lng], 14, { duration: 1 }); }
+  var panel = document.getElementById('panel');
+  var btn = document.getElementById('toggle-list');
+  var handle = document.getElementById('drag-handle');
+  function toggle() { panel.classList.toggle('open'); }
+  btn.onclick = toggle;
+  handle.onclick = toggle;
+  var legend = L.control({position:'bottomright'});
+  legend.onAdd = function() {
+    var d = L.DomUtil.create('div', 'legend');
+    d.innerHTML = '<h4>Distancia a El Triunfo</h4>' +
+      '<i style="background:green"></i> &lt; 5 km<br>' +
+      '<i style="background:orange"></i> 5-20 km<br>' +
+      '<i style="background:red"></i> &gt; 20 km<br>' +
+      '<hr><i style="background:purple"></i> El Triunfo';
+    return d;
+  };
+  legend.addTo(map);
+</script>
+</body>
+</html>
