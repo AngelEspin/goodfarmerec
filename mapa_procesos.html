@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Mapa de Procesos - 12/5/2026</title>
+<title>Mapa de Procesos - 14/5/2026</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="icon" type="image/png" href="logo.png">
@@ -43,8 +43,8 @@
 </head>
 <body>
 <button class="return-btn" onclick="window.location.href='index.html'">← RETURN</button>
-<div class="info-box"><b>12/5/2026</b> | <b>38 procesos</b></div>
-<div class="loc-status" id="loc-status">Obteniendo ubicacion...</div>
+<div class="info-box"><b>14/5/2026</b> | <b>33 procesos</b></div>
+<div class="loc-status" id="loc-status">Ubicacion fija: -3.2164, -79.8078</div>
 <div id="map"></div>
 <button id="toggle-list">📋</button>
 <div id="panel">
@@ -54,45 +54,42 @@
   </table>
 </div>
 <script>
+var FIXED_LAT = -3.216444;
+var FIXED_LNG = -79.807778;
 var puntos = [
-    {lat:-0.977462,lng:-79.5259713,name:". - Angel Munoz",sender:". - Angel Muñoz"},
-    {lat:-0.8071442,lng:-79.4772188,name:"Luis Mora",sender:"Luis Mora"},
-    {lat:-3.1683783531188965,lng:-79.7997055053711,name:"Paul Ponguillo Calidad GF",sender:"Paul Ponguillo Calidad GF"},
-    {lat:-1.5449489,lng:-79.4647117,name:"Marcos Sanchez Calidad GF",sender:"Marcos Sanchez Calidad GF"},
-    {lat:-2.9114464,lng:-79.7771042,name:"Luis Arguello",sender:"Luis Arguello"},
-    {lat:-1.9440117,lng:-79.5034,name:"Jean Carlos Garrido Calidad GF",sender:"Jean Carlos Garrido Calidad GF"},
-    {lat:-3.6682637,lng:-80.1447363,name:"Fernando Sanchez",sender:"Fernando Sanchez"},
-    {lat:-3.3705656,lng:-79.8737801,name:"Alex Wu",sender:"Alex Wu"},
-    {lat:-0.8906533,lng:-79.2155,name:"Jackson Molina",sender:"Jackson Molina"},
-    {lat:-1.5393211,lng:-79.4193193,name:"Darwin Gavilanes",sender:"Darwin Gavilanes"},
-    {lat:-2.6188978,lng:-79.5645784,name:"MARLON ALAVA",sender:"MARLON ALAVA"},
-    {lat:-3.1843893,lng:-79.8080851,name:"Richard Sebastian Garcia",sender:"Richard Sebastian Garcia"},
-    {lat:-3.2897333,lng:-79.88441,name:"Roderick Cadena",sender:"Roderick Cadena 😎"},
-    {lat:-1.9864503,lng:-79.379441,name:"Andres Rendon",sender:"-¡ Andrés Rendon"},
-    {lat:-1.7583623,lng:-79.6605618,name:"Milton Fernandez",sender:"Milton Fernández"},
-    {lat:-2.4219726,lng:-79.4712341,name:"Hugo Calderon",sender:"Hugo Calderón"},
-    {lat:-1.7344888,lng:-79.5638278,name:"Estiven Santillan",sender:"Estiven Santillan"},
-    {lat:-2.1523427,lng:-79.4225052,name:"Paul Rivera Calidad GF",sender:"Paul Rivera Calidad GF"},
-    {lat:-1.7349343,lng:-79.5643579,name:". Christopher Mauricio Cortez",sender:". Christopher Mauricio Cortez"},
-    {lat:-2.230534,lng:-79.5394528,name:"Biallo Miranda Calidad GF",sender:"Biallo Miranda Calidad GF"},
-    {lat:-2.8077094554901123,lng:-79.75043487548828,name:"Danny.D",sender:"Danny.D"},
-    {lat:-2.5101988315582275,lng:-79.56976318359375,name:"Ing. Agr. Jesus Bosquez Calidad GF",sender:"Ing. Agr. Jesus Bósquez Calidad GF"},
-    {lat:-2.5892043113708496,lng:-79.55169677734375,name:"Roger Lopez",sender:"Roger Lopez"},
-    {lat:-0.999005,lng:-79.3038967,name:"Edgar Villon Calidad GF",sender:"Edgar Villon Calidad GF"},
-    {lat:-2.0042265,lng:-79.4033613,name:"i Luis Garcia",sender:"-i Luis Garcia"},
-    {lat:-2.380254030227661,lng:-79.33894348144531,name:"Byron Parrales",sender:"Byron Parrales"},
-    {lat:-1.311165,lng:-79.4154317,name:"Walter Contreras",sender:"Walter Contreras"},
-    {lat:-1.7631867,lng:-79.5612,name:"Luis Litardo",sender:"Luis Litardo"},
-    {lat:-0.9619882702827454,lng:-79.33623504638672,name:"Nixon Reyes Calidad GF",sender:"Nixon Reyes Calidad GF"},
-    {lat:-1.141918659210205,lng:-79.39866638183594,name:"Elvis Fajardo",sender:"Elvis Fajardo"},
-    {lat:-1.0178912,lng:-79.6087645,name:"MANUEL REYES Calidad GF",sender:"MANUEL REYES Calidad GF"},
-    {lat:-1.1214867,lng:-79.6169567,name:"JHONATAN Serna",sender:"JHONATAN Serna"},
-    {lat:-1.008036732673645,lng:-79.39692687988281,name:"Alexys Munoz.",sender:"Alexys Muñoz."},
-    {lat:-2.3595117,lng:-79.3357433,name:"Dalember Murillo",sender:"Dalember Murillo"},
-    {lat:-2.2511414,lng:-79.2620567,name:"Fernando Duran Bsc",sender:"Fernando Durán Bsc😎💛🇧🇪"},
-    {lat:-1.9831862,lng:-79.3932148,name:"BRYAN Galarza",sender:"- BRYAN Galarza"},
-    {lat:-0.5666719,lng:-79.4240916,name:"Stalin",sender:"Stalin"},
-    {lat:-2.8895244,lng:-79.7693092,name:"Alex Wu",sender:"Alex Wu"}
+    {lat:-0.9773735,lng:-79.5258707,name:". - Angel Munoz",sender:". - Angel Muñoz"},
+    {lat:-3.3649169,lng:-79.9131079,name:"Richard Sebastian Garcia",sender:"Richard Sebastian Garcia"},
+    {lat:-1.4890372,lng:-79.740779,name:"Milton Fernandez",sender:"Milton Fernández"},
+    {lat:-1.70067,lng:-79.7215317,name:"Luis Litardo",sender:"Luis Litardo"},
+    {lat:-3.216449499130249,lng:-79.80778503417969,name:"Paul Ponguillo Calidad GF",sender:"Paul Ponguillo Calidad GF"},
+    {lat:-2.269221544265747,lng:-79.55036926269531,name:"Danny.D",sender:"Danny.D"},
+    {lat:-3.2990981,lng:-79.8452282,name:"Hugo Calderon",sender:"Hugo Calderón"},
+    {lat:-3.3631135,lng:-79.8204538,name:"Fernando Sanchez",sender:"Fernando Sanchez"},
+    {lat:-1.7518624,lng:-79.5306498,name:"Marcos Sanchez Calidad GF",sender:"Marcos Sanchez Calidad GF"},
+    {lat:-1.7348526,lng:-79.5644117,name:"i Luis Garcia",sender:"-i Luis Garcia"},
+    {lat:-2.1044243,lng:-79.4757538,name:"Biallo Miranda Calidad GF",sender:"Biallo Miranda Calidad GF"},
+    {lat:-3.2020301,lng:-79.8797205,name:"Alex Wu",sender:"Alex Wu"},
+    {lat:-1.1249933,lng:-79.3583267,name:"Walter Contreras",sender:"Walter Contreras"},
+    {lat:-2.1127749,lng:-79.4883189,name:"BRYAN Galarza",sender:"- BRYAN Galarza"},
+    {lat:-3.3222267,lng:-79.8602943,name:"Roderick Cadena",sender:"Roderick Cadena 😎"},
+    {lat:-2.1198922,lng:-79.4690389,name:"Paul Rivera Calidad GF",sender:"Paul Rivera Calidad GF"},
+    {lat:-2.0759775,lng:-79.4424952,name:"Jean Carlos Garrido Calidad GF",sender:"Jean Carlos Garrido Calidad GF"},
+    {lat:-2.0542468,lng:-79.3729461,name:". Christopher Mauricio Cortez",sender:". Christopher Mauricio Cortez"},
+    {lat:-1.08417,lng:-79.3903983,name:"Jackson Molina",sender:"Jackson Molina"},
+    {lat:-3.3109167,lng:-79.8797048,name:"Luis Arguello",sender:"Luis Arguello"},
+    {lat:-2.031872034072876,lng:-79.46825408935547,name:"Ing. Agr. Jesus Bosquez Calidad GF",sender:"Ing. Agr. Jesus Bósquez Calidad GF"},
+    {lat:-2.080682,lng:-79.3410999,name:"Dalember Murillo",sender:"Dalember Murillo"},
+    {lat:-2.1196283,lng:-79.52026,name:"Andres Rendon",sender:"-¡ Andrés Rendon"},
+    {lat:-2.1280297,lng:-79.4833763,name:"Fernando Duran Bsc",sender:"Fernando Durán Bsc😎💛🇧🇪"},
+    {lat:-1.3708584,lng:-79.3988151,name:"Darwin Gavilanes",sender:"Darwin Gavilanes"},
+    {lat:-0.5664895,lng:-79.4242966,name:"Stalin",sender:"Stalin"},
+    {lat:-2.1751880645751953,lng:-79.62305450439453,name:"Roger Lopez",sender:"Roger Lopez"},
+    {lat:-2.266340732574463,lng:-79.70372009277344,name:"Byron Parrales",sender:"Byron Parrales"},
+    {lat:-1.7569983,lng:-79.5709583,name:"Estiven Santillan",sender:"Estiven Santillan"},
+    {lat:-0.8844611644744873,lng:-79.31718444824219,name:"Alexys Munoz.",sender:"Alexys Muñoz."},
+    {lat:-1.0399111,lng:-79.3487458,name:"MANUEL REYES Calidad GF",sender:"MANUEL REYES Calidad GF"},
+    {lat:-0.8998152613639832,lng:-79.36795806884766,name:"Nixon Reyes Calidad GF",sender:"Nixon Reyes Calidad GF"},
+    {lat:-2.288071,lng:-80.6243333,name:"MARLON ALAVA",sender:"MARLON ALAVA"}
 ];
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -111,35 +108,14 @@ function colorDist(km) {
     return ['red','Lejano'];
 }
 
-var map = L.map('map', {zoomControl:true,zoomSnap:0.5,zoomDelta:1}).setView([-1.8,-79.5],7);
+var map = L.map('map', {zoomControl:true,zoomSnap:0.5,zoomDelta:1}).setView([FIXED_LAT,FIXED_LNG],9);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(map);
 
 var markers = [];
 var circles5 = null, circles20 = null;
 var userMarker = null;
-var ubicacionObtenida = false;
-
-function mostrarTodos() {
-    var rows = '';
-    puntos.forEach(function(p,i) {
-        var col = '#888';
-        var icon = L.divIcon({
-            html: '<div style="display:flex;align-items:center;gap:5px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">'
-                + '<div style="background:'+col+';width:26px;height:26px;border-radius:50%;border:3px solid white;flex-shrink:0;"></div>'
-                + '<span style="background:rgba(255,255,255,0.95);padding:4px 10px;border-radius:6px;font-size:clamp(13px,3.5vw,16px);font-weight:bold;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.15);">'+p.name+'</span>'
-                + '</div>',
-            className:'', iconSize:null, iconAnchor:[13,13]
-        });
-        var m = L.marker([p.lat,p.lng],{icon:icon}).addTo(map)
-            .bindPopup('<b>'+p.sender+'</b>');
-        markers[i] = m;
-        rows += '<tr onclick="map.flyTo(['+p.lat+','+p.lng+'],14,{duration:1})"><td><i style="background:#888"></i></td><td>'+p.name+'</td><td>---</td></tr>';
-    });
-    document.querySelector('#panel table').innerHTML = '<tr><th></th><th>Nombre</th><th>Distancia</th></tr>'+rows;
-}
 
 function updateDist(userLat, userLng) {
-    ubicacionObtenida = true;
     var rows = '';
     var sorted = puntos.map(function(p) {
         p.dist = haversine(userLat, userLng, p.lat, p.lng);
@@ -165,42 +141,17 @@ function updateDist(userLat, userLng) {
     document.querySelector('#panel table').innerHTML = '<tr><th></th><th>Nombre</th><th>Distancia</th></tr>'+rows;
 }
 
-function onLocation(e) {
-    var lat = e.latlng.lat, lng = e.latlng.lng;
-    document.getElementById('loc-status').textContent = 'Ubicacion: '+lat.toFixed(4)+', '+lng.toFixed(4);
+userMarker = L.marker([FIXED_LAT,FIXED_LNG],{
+    icon: L.divIcon({
+        html: '<div style="background:#2196F3;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 3px rgba(33,150,243,0.3);"></div>',
+        className:'', iconSize:[18,18], iconAnchor:[9,9]
+    })
+}).addTo(map).bindPopup('<b>Ubicacion fija</b>');
 
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.marker([lat,lng],{
-        icon: L.divIcon({
-            html: '<div style="background:#2196F3;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 3px rgba(33,150,243,0.3);"></div>',
-            className:'', iconSize:[18,18], iconAnchor:[9,9]
-        })
-    }).addTo(map).bindPopup('<b>Tu ubicacion</b>');
+circles5 = L.circle([FIXED_LAT,FIXED_LNG],{radius:5000,color:'green',fillColor:'green',fillOpacity:0.06,weight:2,opacity:0.4}).addTo(map);
+circles20 = L.circle([FIXED_LAT,FIXED_LNG],{radius:20000,color:'orange',fillColor:'orange',fillOpacity:0.04,weight:2,opacity:0.3}).addTo(map);
 
-    if (circles5) map.removeLayer(circles5);
-    if (circles20) map.removeLayer(circles20);
-    circles5 = L.circle([lat,lng],{radius:5000,color:'green',fillColor:'green',fillOpacity:0.06,weight:2,opacity:0.4}).addTo(map);
-    circles20 = L.circle([lat,lng],{radius:20000,color:'orange',fillColor:'orange',fillOpacity:0.04,weight:2,opacity:0.3}).addTo(map);
-
-    updateDist(lat, lng);
-    map.setView([lat,lng],8);
-}
-
-function onError(e) {
-    document.getElementById('loc-status').textContent = 'Ubicacion no disponible - mostrando todos los puntos';
-    mostrarTodos();
-}
-
-setTimeout(function() {
-    if (!ubicacionObtenida) {
-        document.getElementById('loc-status').textContent = 'Tiempo de espera - mostrando todos los puntos';
-        mostrarTodos();
-    }
-}, 10000);
-
-map.locate({setView:true,watch:true,enableHighAccuracy:true});
-map.on('locationfound', onLocation);
-map.on('locationerror', onError);
+updateDist(FIXED_LAT, FIXED_LNG);
 
 var panel = document.getElementById('panel');
 var btn = document.getElementById('toggle-list');
@@ -211,7 +162,7 @@ handle.onclick = toggle;
 
 L.control({position:'bottomright'}).onAdd = function() {
     var d = L.DomUtil.create('div','legend');
-    d.innerHTML = '<h4>Distancia a ti</h4><i style="background:green"></i> &lt; 5 km<br><i style="background:orange"></i> 5-20 km<br><i style="background:red"></i> &gt; 20 km';
+    d.innerHTML = '<h4>Distancia a ubicacion fija</h4><i style="background:green"></i> &lt; 5 km<br><i style="background:orange"></i> 5-20 km<br><i style="background:red"></i> &gt; 20 km';
     return d;
 }.addTo(map);
 </script>
